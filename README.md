@@ -36,32 +36,32 @@ was written without a Mac at hand.
 ## Scenario language
 
 A scenario is YAML (the editor has a "YAML" mode; the form is for simple edits). Steps are short
-(`- tap: Каталог`) or with fields. A full example is `examples/scenario-advanced.yaml`, the schema for the
+(`- tap: Catalog`) or with fields. A full example is `examples/scenario-advanced.yaml`, the schema for the
 editor is `schema/scenario.schema.json` (also `GET /api/schema`).
 
-Targets in the samples (button captions, screen texts) are the texts of your own app's UI, so they stay in the app's language.
+Targets in the samples (button captions, screen texts) stand for the texts of your own app's UI.
 
 ```yaml
-name: Доставка по статусам
-vars: { product: k9fx }
+name: Order delivery
+vars: { product: demo-123 }
 setup:                                   # goes first; if it fails, the main steps do not run
   - use: reset-cart
 steps:
   - use: add-to-cart                     # a block with parameters
     with: { product: "{{product}}" }
   - use: checkout
-  - if: { visible: Заполните детали }    # the condition is checked once, when the run gets here
-    then: [ { tap: Заполните детали } ]
-    else: [ { assertText: Тверская } ]
+  - if: { visible: Add details }    # the condition is checked once, when the run gets here
+    then: [ { tap: Add details } ]
+    else: [ { assertText: Main Street } ]
   - repeat:                              # until it holds / no more than N times
-      until: { notVisible: Проверяем оплату }
+      until: { notVisible: Checking payment }
       max: 20
       steps: [ { wait: 2 } ]
   - api: { url: api/v1/orders, poll: 40, expectPath: items.0.status, expectValue: paid, save: { orderId: items.0.id } }
   - api: { url: "api/v1/courier/{{orderId}}/pickup", method: POST, auth: courier }
 teardown:                                # always, except after "Stop"
   - api: { url: api/v1/cart/clear, method: POST }
-matrix: { delivery: [Курьер, Самовывоз] }   # one scenario × rows = several runs
+matrix: { delivery: [Courier, Pickup] }   # one scenario × rows = several runs
 rules: { noServerErrors: true }            # any 5xx for the app fails the run
 ```
 
@@ -76,11 +76,11 @@ rules: { noServerErrors: true }            # any 5xx for the app fails the run
 | Roles | `auth: <role>` on an API step; roles and their tokens/phone numbers are in settings (`accounts`); by default the account of the app itself (`auth.appAccount`), otherwise the first role in the table; `none` means no token; steps have `{{role.phone}}` |
 | Screen checks | `assertText: { text, absent, regex, count, id }`; `assertScreen: { baseline, threshold }` compares with a baseline screenshot (the first run saves the baseline to `data/baselines`; on the run page you can accept a new one) |
 | Step policy | on any step: `retry: N`, `optional: true` (a failure does not fail the run, the step is marked "with a caveat"), `flaky: true` (two attempts and a mark), `timeout`, `screenshot: false` |
-| Platforms | `target: { android: Назад, ios: Back }` (also `text`, `url`); `when: { platform: ios }` |
+| Platforms | `target: { android: Navigate up, ios: Back }` (also `text`, `url`); `when: { platform: ios }` |
 | Substitutions | variables from settings and the scenario, `save` from API steps, `{{uuid}}`, `{{now}}`, `{{hex64}}`, templates from settings (`{{context}}`) |
 | Measurement | `measure: true` or `measure: { iterations: 3, flashlight: false }`: frames, CPU and memory on every screen step, a score per run; see "Performance" |
 | Scrolling | `swipe: { direction, fast: true, times: 10, pause, duration }`. `fast` is a sharp fling (80 ms across almost the whole screen), `times` is a series in a row: a load test for a list |
-| Section | `section: Лента` is where the scenario lands in the performance history; without it, "Other" |
+| Section | `section: Feed` is where the scenario lands in the performance history; without it, "Other" |
 | Variants | `variants: { lite: { title, vars, setup, teardown } }`: one run per variant; the variant's `setup` goes before the scenario, `teardown` after it, `vars` are available as `{{…}}`; the history counts variants separately |
 | Tabs | the main page has two tabs: scenarios with `measure` or the `perf` tag go to the "Load" tab, scenarios without `measure` or with the `tests` tag go to the "Tests" tab (one scenario can be in both); a run from "Load" always measures, "Measure all" queues the whole tab |
 
@@ -208,13 +208,13 @@ both screens takes the phone, opens the browser at its first step and closes it 
 
 ```yaml
 steps:
-  - use: checkout-cdek-card          # phone: the buyer places an order
+  - use: checkout          # phone: the buyer places an order
   - browser:
-      - launch: { url: /shipment, storage: { qa.session: '{"accessToken":"{{buyer.token}}", …}' } }
+      - launch: { url: /admin/orders, storage: { session: '{"accessToken":"{{buyer.token}}", …}' } }
       - input: { target: order_id, text: "{{orderId}}" }
-      - tap: { target: Передать перевозчику, timeout: 120 }
+      - tap: { target: Hand over to carrier, timeout: 120 }
   - use: open-order                   # the phone again
-    with: { tab: Завершенные }
+    with: { tab: Completed }
 ```
 
 On the run page the screenshot strip is divided into "phone" / "browser" sections, browser frames are wide, and
@@ -387,7 +387,7 @@ is not overwritten by the console: the API answers with an error and the reason,
 node tools/e2e.js list
 node tools/e2e.js lint all
 node tools/e2e.js run login cart-add --engine maestro --device all   # exit code 1 if anything failed
-node tools/e2e.js run perf-lenta --measure --iterations 3           # with measurement: score, p95, jank, startup in the output
+node tools/e2e.js run perf-feed --measure --iterations 3           # with measurement: score, p95, jank, startup in the output
 node tools/e2e.js import examples/maestro --dry
 node tools/e2e.js export cart-add --format maestro --out out/
 node tools/e2e.js export all --out out/

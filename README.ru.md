@@ -37,19 +37,19 @@ Android SDK (adb, emulator). Консоль ищет SDK сама: `ANDROID_HOME
 редактора — `schema/scenario.schema.json` (и `GET /api/schema`).
 
 ```yaml
-name: Доставка по статусам
-vars: { product: k9fx }
+name: Заказ с доставкой
+vars: { product: demo-123 }
 setup:                                   # первым; упал — основные шаги не идут
   - use: reset-cart
 steps:
   - use: add-to-cart                     # блок с параметрами
     with: { product: "{{product}}" }
   - use: checkout
-  - if: { visible: Заполните детали }    # условие проверяется один раз, когда дошли
-    then: [ { tap: Заполните детали } ]
-    else: [ { assertText: Тверская } ]
+  - if: { visible: Указать данные }    # условие проверяется один раз, когда дошли
+    then: [ { tap: Указать данные } ]
+    else: [ { assertText: Главная улица } ]
   - repeat:                              # пока не станет / не больше N раз
-      until: { notVisible: Проверяем оплату }
+      until: { notVisible: Оплата проверяется }
       max: 20
       steps: [ { wait: 2 } ]
   - api: { url: api/v1/orders, poll: 40, expectPath: items.0.status, expectValue: paid, save: { orderId: items.0.id } }
@@ -75,7 +75,7 @@ rules: { noServerErrors: true }            # любой 5xx у приложен�
 | Подстановки | переменные настроек и сценария, `save` из API-шагов, `{{uuid}}`, `{{now}}`, `{{hex64}}`, шаблоны из настроек (`{{context}}`) |
 | Замер | `measure: true` или `measure: { iterations: 3, flashlight: false }` — кадры, CPU и память на каждом экранном шаге, балл за прогон; см. «Производительность» |
 | Прокрутка | `swipe: { direction, fast: true, times: 10, pause, duration }` — `fast` резкий флинг (80 мс почти на весь экран), `times` серия подряд: нагрузочный тест списка |
-| Раздел | `section: Лента` — куда сценарий попадает в истории производительности; без него — «Прочее» |
+| Раздел | `section: Каталог` — куда сценарий попадает в истории производительности; без него — «Прочее» |
 | Варианты | `variants: { lite: { title, vars, setup, teardown } }` — один прогон на вариант; `setup` варианта идёт перед сценарием, `teardown` после, `vars` доступны как `{{…}}`; история считает варианты отдельно |
 | Вкладки | на главной две вкладки: сценарии с `measure` или тегом `perf` — во вкладке «Нагрузка», без `measure` или с тегом `tests` — во вкладке «Тесты» (один сценарий может быть в обеих); из «Нагрузки» запуск всегда с замером, «Замерить всё» ставит в очередь всю вкладку |
 
@@ -203,13 +203,13 @@ jank; его профайлер сам добавляет нагрузку (на
 
 ```yaml
 steps:
-  - use: checkout-cdek-card          # телефон: покупатель оформляет заказ
+  - use: checkout          # телефон: покупатель оформляет заказ
   - browser:
-      - launch: { url: /shipment, storage: { qa.session: '{"accessToken":"{{buyer.token}}", …}' } }
+      - launch: { url: /admin/orders, storage: { session: '{"accessToken":"{{buyer.token}}", …}' } }
       - input: { target: order_id, text: "{{orderId}}" }
-      - tap: { target: Передать перевозчику, timeout: 120 }
+      - tap: { target: Передать в доставку, timeout: 120 }
   - use: open-order                   # снова телефон
-    with: { tab: Завершенные }
+    with: { tab: Архив }
 ```
 
 На странице прогона лента скриншотов делится на участки «телефон» / «браузер», кадры браузера широкие, а
@@ -382,7 +382,7 @@ API со страниц других сайтов (и других портов 
 node tools/e2e.js list
 node tools/e2e.js lint all
 node tools/e2e.js run login cart-add --engine maestro --device all   # код выхода 1, если что-то упало
-node tools/e2e.js run perf-lenta --measure --iterations 3           # с замером: балл, p95, jank, старт в выводе
+node tools/e2e.js run perf-feed --measure --iterations 3           # с замером: балл, p95, jank, старт в выводе
 node tools/e2e.js import examples/maestro --dry
 node tools/e2e.js export cart-add --format maestro --out out/
 node tools/e2e.js export all --out out/

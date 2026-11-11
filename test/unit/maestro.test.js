@@ -39,7 +39,7 @@ test('cmdLine refuses a quote, a percent sign, line breaks and a trailing backsl
 });
 
 test('contains and exact escape regex specials and match any kind of space', () => {
-  assert.equal(exact('2 370 ₽'), '2[\\s\\u00A0\\u202F]+370[\\s\\u00A0\\u202F]+₽');
+  assert.equal(exact('1 250 ₽'), '1[\\s\\u00A0\\u202F]+250[\\s\\u00A0\\u202F]+₽');
   assert.equal(contains('a.b'), '(?s).*a\\.b.*');
   const re = new RegExp('^' + exact('1 000 (x)') + '$', 's');
   assert.ok(re.test('1\u00a0000\u202f(x)'));

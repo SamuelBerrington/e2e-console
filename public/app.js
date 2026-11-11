@@ -735,7 +735,7 @@ function stepFields(s, i) {
   const sel = (key, label, opts) => `<label class="field">${label}<select data-f="${key}" data-i="${i}">${opts.map(([v, tx]) => `<option value="${h(v)}" ${String(s[key] ?? opts[0][0]) === v ? 'selected' : ''}>${h(tx)}</option>`).join('')}</select></label>`;
   switch (s.type) {
     case 'launch': return chk('clear', t('Сбросить данные приложения (выйти из аккаунта)')) + num('settle', t('Подождать после запуска, с'), '3')
-      + ((draft.engine === 'web' || s.on === 'web' || s.on === 'browser') ? f('url', t('Страница: полный адрес или путь от «Адреса сайта» в настройках, напр. /shipment'), 'wide') : '');
+      + ((draft.engine === 'web' || s.on === 'web' || s.on === 'browser') ? f('url', t('Страница: полный адрес или путь от «Адреса сайта» в настройках, напр. /orders'), 'wide') : '');
     case 'tap': return f('target', t('Текст на экране (или id элемента)'), 'wide') + num('timeout', t('Ждать появления, с'), '10')
       + chk('optional', t('Если не появилось — пропустить')) + chk('byId', t('Это id элемента, не текст'))
       + `<label class="field">${t('Сдвиг от текста по X / Y, px')}<span style="display:flex;gap:6px"><input type="number" data-f="dx" data-i="${i}" value="${h(s.dx ?? '')}" placeholder="0"><input type="number" data-f="dy" data-i="${i}" value="${h(s.dy ?? '')}" placeholder="0"></span></label>`;
@@ -1326,7 +1326,7 @@ async function viewSettings() {
       <h2>${t('Браузер')}</h2>
       <div class="hint">${t('Шаги в браузере (движок web, группа <span class="mono">browser:</span> или <span class="mono">on: web</span> у шага) выполняет Playwright в установленном Chrome или Edge. Вкладки списка сценариев делаются на главной кнопкой «+».')}</div>
       <div class="form-grid">
-        ${field('webUrl', t('Адрес сайта для шагов в браузере'), t('шаг «Открыть» с относительным url (/shipment) откроет страницу этого сайта'))}
+        ${field('webUrl', t('Адрес сайта для шагов в браузере'), t('шаг «Открыть» с относительным url (/orders) откроет страницу этого сайта'))}
         ${field('web.browserPath', t('Путь к браузеру'), t('пусто — найдётся установленный Chrome или Edge'))}
         ${check('web.headless', t('Без окна (headless)'), t('сними, чтобы видеть окно браузера во время прогона'))}
         ${field('web.width', t('Ширина окна, px'), '1280')}

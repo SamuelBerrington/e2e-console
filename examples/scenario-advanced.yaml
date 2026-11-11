@@ -30,19 +30,19 @@ steps:
   - tap: Оформить заказ
   - use: pick-delivery
     with: { kind: "{{delivery}}" }
-  - if: { visible: Заполните детали доставки }   # условие проверяется один раз, когда дошли сюда
+  - if: { visible: Указать данные доставки }   # условие проверяется один раз, когда дошли сюда
     then:
-      - tap: Заполните детали доставки
-      - input: { target: Адрес, text: Тверская 1 }
+      - tap: Указать данные доставки
+      - input: { target: Адрес, text: Главная улица 1 }
       - tap: Сохранить
     else:
-      - assertText: Тверская
+      - assertText: Главная улица
   - tap: { target: Промокод, when: { var: promo } }  # шаг только если переменная promo задана
   - tap: "{{payment}}"
   - tap: { target: Оплатить, retry: 2, after: 5 }      # повторить до двух раз при неудаче
   - tap: { target: Продолжить без входа, optional: true, timeout: 5 }
   - repeat:                                            # ждать, пока не исчезнет спиннер, но не больше 20 раз
-      until: { notVisible: Проверяем оплату }
+      until: { notVisible: Оплата проверяется }
       max: 20
       steps:
         - wait: 2

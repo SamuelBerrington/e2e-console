@@ -163,6 +163,22 @@ test('exportMaestro wraps a conditional step in runFlow.when and writes a backen
   assert.match(files[1].content, /'Bearer ' \+ SELLER_TOKEN/);
 });
 
+test('exportMaestro expands a settings template in a backend script and hard-codes no request envelope', () => {
+  const sc = { name: 'T', steps: [{ type: 'api', method: 'POST', url: 'api/v1/things', headers: { 'x-request-context': '{{envelope}}' }, body: '{"id":"{{uuid}}","note":"{{missing}}"}' }] };
+  const templates = { envelope: { request_id: '{{uuid}}', sent_at: '{{now}}', nested: '{{inner}}' }, inner: 'plain-{{hex64}}' };
+  const withTemplates = F.exportMaestro(sc, { package: 'com.example.fake', templates }).files[1].content;
+  assert.match(withTemplates, /request_id/);
+  assert.match(withTemplates, /uuid\(\)/);
+  assert.match(withTemplates, /new Date\(\)\.toISOString\(\)/);
+  assert.match(withTemplates, /hex\(64\)/, 'a template inside a template is expanded too');
+  // the script must be valid JavaScript
+  assert.doesNotThrow(() => new Function('http', 'json', 'output', 'API_BASE', 'BUYER_TOKEN', withTemplates));
+  // no template in the settings: the placeholder stays a variable the user passes to Maestro, and nothing is invented
+  const bare = F.exportMaestro(sc, { package: 'com.example.fake' }).files[1].content;
+  assert.match(bare, /typeof envelope !== 'undefined'/);
+  assert.ok(!/function ctx\(/.test(bare), 'no built-in request envelope');
+});
+
 // ---------- .env ----------
 test('.env import of examples/keys.env.example fills settings and wipes nothing with empty values', () => {
   const r = F.parseImport([file(path.join(EXAMPLES, 'keys.env.example'))]);
