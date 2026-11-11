@@ -1,0 +1,37 @@
+# Библиотека блоков: положи в data/blocks/ (или вставь в «Настройки → Библиотека блоков»).
+# Любой сценарий подключает блок шагом `- use: имя`; параметры — `with: { … }`.
+# Переменные прогона ({{orderId}} из save, {{product}} из vars/matrix) видны внутри блоков как есть.
+
+reset-cart:
+  steps:
+    - launch
+    - tap: Корзина
+    - tap: { target: Очистить, optional: true }
+    - api: { title: Корзина пуста, url: api/v1/cart, expectPath: items.length, expectValue: "0", screenshot: false }
+
+add-to-cart:
+  params: [product]          # без значения по умолчанию: обязателен через with
+  steps:
+    - link: https://shop.example.com/p/{{product}}
+    - tap: В корзину
+    - assertText: В корзине
+
+open-order:
+  params: { tab: Активные }  # значение по умолчанию
+  steps:
+    - launch
+    - tap: Заказы
+    - tap: "{{tab}}"
+    - tap: { target: "№{{orderNumber}}", timeout: 30 }
+    - assertText: "Заказ №{{orderNumber}}"
+
+wait-shipment-state:
+  params: [state]
+  steps:
+    - api:
+        title: Отправление перешло в {{state}}
+        url: "api/v1/orders/{{orderId}}/shipment"
+        poll: 60                      # опрашивать до минуты, пока state не совпадёт
+        expectPath: state
+        expectValue: "{{state}}"
+        screenshot: false

@@ -1,0 +1,9 @@
+<!doctype html><html><head><meta charset="utf-8"><title>start</title></head><body style="margin:0">
+<div id="hdr" style="height:40px">Header</div>
+<div id="a"><button id="del" onclick="document.title='DELETED'">Delete all</button><button onclick="document.getElementById('a').style.display='none';document.getElementById('b').style.display='block'">Next</button></div>
+<div id="b" style="display:none"><p>Panel B</p><button onclick="document.title='kept'">Keep</button></div>
+<button id="rec" onclick="document.title='clicked:'+this.textContent">Alpha</button>
+<button onclick="document.getElementById('rec').textContent='Beta'">Recycle</button>
+<button onclick="document.title='second'">Second</button>
+<button onclick="document.title='second-exact'">Second item</button>
+</body></html>

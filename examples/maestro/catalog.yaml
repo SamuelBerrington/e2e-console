@@ -1,0 +1,18 @@
+# Обычный Maestro flow: импортируй его (кнопка «Импорт» или node tools/e2e.js import examples/maestro).
+# То, что консоль понимает, станет её шагами; остальное останется командами Maestro.
+appId: com.example.app
+name: Каталог и корзина (пример Maestro)
+env:
+  PRODUCT: demo-123
+---
+- launchApp
+- tapOn: "Каталог"
+- assertVisible: "Новинки"
+- scrollUntilVisible:
+    element: "Тестовый товар.*"
+- openLink: https://shop.example.com/p/${PRODUCT}
+- tapOn: "В корзину"
+- extendedWaitUntil:
+    visible: "В корзине"
+    timeout: 10000
+- runScript: scripts/cart-has-lines.js

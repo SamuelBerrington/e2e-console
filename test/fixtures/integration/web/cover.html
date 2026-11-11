@@ -1,0 +1,19 @@
+<!doctype html><html><head><meta charset="utf-8"><title>start</title><style>.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}</style></head><body>
+<button onclick="document.title+='|buy'">Buy</button>
+<button id="ghost" onclick="document.title+='|ghost'">Ghost</button>
+<button onclick="document.getElementById('ghost').style.opacity='0'">Fade</button>
+<button id="tiny" onclick="document.title+='|tiny'">Tiny</button>
+<button onclick="var t=document.getElementById('tiny');t.style.cssText='display:inline-block;width:0;height:0;padding:0;border:0;overflow:hidden'">Shrink</button>
+<button id="gone" onclick="document.title+='|gone'">Gone</button>
+<button onclick="document.getElementById('gone').style.display='none'">Hide</button>
+<button onclick="document.getElementById('modal').style.display='block'">Open modal</button>
+<a href="#main" style="position:absolute;left:-9999px">Skip to content</a>
+<span class="sr">Loading…</span>
+<div style="height:0;overflow:hidden"><p>Collapsed answer</p></div>
+<div style="opacity:0"><p>Invisible parent text</p></div>
+<div style="display:none"><button>Display none</button></div>
+<div style="visibility:hidden"><button>Visibility hidden</button></div>
+<label style="position:relative;display:block;margin-top:20px"><span id="fl" style="position:absolute;left:0;top:0;width:200px;height:28px;line-height:28px">Email</span><input id="email" style="width:200px;height:28px" onfocus="document.title+='|focus'"></label>
+<div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4)"><div class="dialog" style="background:#fff;margin:200px auto;width:200px">Accept cookies</div></div>
+<button style="opacity:0" onclick="document.title+='|transparent'">Transparent</button>
+</body></html>

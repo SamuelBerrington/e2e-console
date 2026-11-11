@@ -1,0 +1,31 @@
+# Сценарий в YAML консоли. Шаги коротко или с полями; команды Maestro можно ставить прямо между шагами.
+# Блоки, фазы, условия, повторы, матрица, роли — в examples/scenario-advanced.yaml и examples/blocks.yaml.
+name: Корзина — пример YAML
+description: открыть товар по ссылке, добавить в корзину, проверить сервер, удалить свайпом
+engine: maestro            # adb | maestro; без поля — движок из настроек
+vars:
+  product: demo-123
+steps:
+  - launch
+  - link: https://shop.example.com/p/{{product}}
+  - tap: В корзину
+  - assertText: В корзине
+  - api:
+      title: Позиция появилась на сервере
+      url: api/v1/cart
+      expectPath: items.length
+      expectValue: "1"
+      timeout: 10
+      screenshot: false
+  - api:
+      title: Изменение с конвертом, который ждёт бэкенд
+      method: POST
+      url: api/v1/cart/refresh
+      headers: { Idempotency-Key: "{{uuid}}" }
+      body: '{"context": {{context}}, "payload": {}}'   # {{context}} — шаблон из настроек (templates)
+  - tap: { target: В корзине, after: 3 }
+  - swipe: { direction: left, target: Тестовый товар }   # выполнит adb: свайп строки
+  - tap: Удалить из корзины
+  - scrollUntilVisible:          # команда Maestro как есть
+      element: "Рекомендации"
+  - ai: Проверь, что пустая корзина выглядит как в макете

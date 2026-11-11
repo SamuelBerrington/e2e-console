@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>E2E консоль</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-row">
+    <a class="brand" href="#/"><span class="logo">E2E</span><span id="app-name">E2E Console</span></a>
+    <div class="chips" id="device"></div>
+    <nav class="top-actions">
+      <a class="btn" href="#/start" data-i18n title="Пошаговая настройка: инструменты, устройство, приложение, первый сценарий">Как начать</a>
+      <a class="btn" href="#/perf" data-i18n title="Баллы производительности по устройствам, разделам и сборкам">История</a>
+      <a class="btn" href="#/import" data-i18n>Импорт</a>
+      <a class="btn" href="#/settings" data-i18n>Настройки</a>
+      <a class="btn" href="#/edit/new" data-i18n>+ Новый сценарий</a>
+    </nav>
+  </div>
+</header>
+<main class="wrap" id="app"></main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="/i18n.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

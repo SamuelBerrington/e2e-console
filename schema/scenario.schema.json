@@ -1,0 +1,446 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://e2e-console/scenario.schema.json",
+  "title": "e2e-console scenario",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "engine": {
+      "enum": [
+        "adb",
+        "maestro"
+      ]
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "vars": {
+      "type": "object"
+    },
+    "matrix": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array"
+          }
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      ]
+    },
+    "blocks": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "params": {
+            "oneOf": [
+              {
+                "type": "array"
+              },
+              {
+                "type": "object"
+              }
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/step"
+            }
+          }
+        },
+        "required": [
+          "steps"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "rules": {
+      "type": "object",
+      "properties": {
+        "noServerErrors": {
+          "type": "boolean"
+        },
+        "allowStatus": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "setup": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/step"
+      }
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/step"
+      }
+    },
+    "teardown": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/step"
+      }
+    }
+  },
+  "required": [
+    "steps"
+  ],
+  "definitions": {
+    "step": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "шаг без полей: launch, back"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "enum": [
+                "launch",
+                "link",
+                "tap",
+                "type",
+                "swipe",
+                "back",
+                "wait",
+                "assertText",
+                "assertScreen",
+                "api",
+                "ai",
+                "maestro",
+                "use",
+                "if",
+                "repeat"
+              ],
+              "description": "тип шага (в краткой форме — ключ: `- tap: Каталог`)"
+            },
+            "title": {
+              "type": "string"
+            },
+            "screenshot": {
+              "type": "boolean"
+            },
+            "figma": {
+              "type": "string"
+            },
+            "when": {
+              "$ref": "#/definitions/condition"
+            },
+            "retry": {
+              "type": "number",
+              "description": "повторить шаг при неудаче столько раз"
+            },
+            "optional": {
+              "type": "boolean",
+              "description": "неудача не роняет прогон"
+            },
+            "flaky": {
+              "type": "boolean",
+              "description": "известно нестабильный: две попытки, отмечается в отчёте"
+            },
+            "timeout": {
+              "type": "number",
+              "description": "секунд ждать"
+            },
+            "allowStatus": {
+              "type": "array"
+            },
+            "clear": {
+              "type": "boolean"
+            },
+            "settle": {
+              "type": "number"
+            },
+            "url": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "android": {
+                      "type": "string"
+                    },
+                    "ios": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "target": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "android": {
+                      "type": "string"
+                    },
+                    "ios": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "by": {
+              "enum": [
+                "text",
+                "id"
+              ]
+            },
+            "double": {
+              "type": "boolean"
+            },
+            "dx": {
+              "type": "number"
+            },
+            "dy": {
+              "type": "number"
+            },
+            "after": {
+              "type": "number"
+            },
+            "fallback": {
+              "type": "array"
+            },
+            "text": {
+              "type": "string"
+            },
+            "enter": {
+              "type": "boolean"
+            },
+            "direction": {
+              "enum": [
+                "up",
+                "down",
+                "left",
+                "right"
+              ]
+            },
+            "seconds": {
+              "type": "number"
+            },
+            "id": {
+              "type": "string"
+            },
+            "absent": {
+              "type": "boolean"
+            },
+            "regex": {
+              "type": "boolean"
+            },
+            "count": {
+              "type": "number"
+            },
+            "baseline": {
+              "type": "string"
+            },
+            "threshold": {
+              "type": "number"
+            },
+            "ignore": {
+              "type": "array"
+            },
+            "method": {
+              "enum": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+              ]
+            },
+            "auth": {
+              "type": "string"
+            },
+            "headers": {
+              "type": "object"
+            },
+            "body": {},
+            "expectPath": {
+              "type": "string"
+            },
+            "expectValue": {},
+            "expectStatus": {
+              "type": "number"
+            },
+            "save": {
+              "type": "object"
+            },
+            "poll": {
+              "type": "number"
+            },
+            "interval": {
+              "type": "number"
+            },
+            "commands": {
+              "type": "array"
+            },
+            "yaml": {
+              "type": "string"
+            },
+            "files": {
+              "type": "object"
+            },
+            "use": {
+              "type": "string"
+            },
+            "with": {
+              "type": "object"
+            },
+            "if": {
+              "$ref": "#/definitions/condition"
+            },
+            "then": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/step"
+              }
+            },
+            "else": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/step"
+              }
+            },
+            "steps": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/step"
+              }
+            },
+            "until": {
+              "$ref": "#/definitions/condition"
+            },
+            "times": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/step"
+      }
+    },
+    "condition": {
+      "type": "object",
+      "description": "условие: visible / notVisible (текст на экране), var + equals|matches, platform, not",
+      "properties": {
+        "visible": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "android": {
+                  "type": "string"
+                },
+                "ios": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "notVisible": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "android": {
+                  "type": "string"
+                },
+                "ios": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "var": {
+          "type": "string"
+        },
+        "equals": {},
+        "matches": {
+          "type": "string"
+        },
+        "platform": {
+          "enum": [
+            "android",
+            "ios"
+          ]
+        },
+        "not": {
+          "$ref": "#/definitions/condition"
+        }
+      },
+      "additionalProperties": false
+    },
+    "shorthand": {
+      "type": "object",
+      "properties": {
+        "launch": {},
+        "link": {},
+        "tap": {},
+        "input": {},
+        "swipe": {},
+        "back": {},
+        "wait": {},
+        "assertText": {},
+        "assertScreen": {},
+        "api": {},
+        "ai": {},
+        "maestro": {},
+        "use": {},
+        "if": {},
+        "repeat": {}
+      }
+    }
+  }
+}

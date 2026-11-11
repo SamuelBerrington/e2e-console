@@ -1,0 +1,16 @@
+# A synthetic bundle for the CLI import tests: no real phones, tokens, products or companies.
+kind: e2e-console/bundle
+version: 1
+settings:
+  package: org.example.fixture
+blocks:
+  fixture-close:
+    steps:
+      - tap: Close
+scenarios:
+  - id: fixture-checkout
+    name: Fixture checkout
+    steps:
+      - launch: clear
+      - use: fixture-close
+      - assertText: Thank you

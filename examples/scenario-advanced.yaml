@@ -1,0 +1,78 @@
+# Всё, что умеет язык сценариев, в одном файле. Блоки — из examples/blocks.yaml (или свои, ниже).
+name: Заказ — расширенный пример
+engine: maestro
+vars:
+  product: demo-123
+# один сценарий × строки matrix = несколько прогонов (переменные строки доступны как {{имя}})
+matrix:
+  delivery: [Курьер, Самовывоз]
+  payment: [Карта]
+# правила на весь прогон: любой 5xx в запросах приложения — прогон упал
+rules:
+  noServerErrors: true
+  allowStatus: [503]
+
+# свои блоки (перекрывают библиотечные с тем же именем)
+blocks:
+  pick-delivery:
+    params: [kind]
+    steps:
+      - tap: Способ доставки
+      - tap: "{{kind}}"
+
+setup:                                  # выполняется первым; упал — основные шаги не идут
+  - use: reset-cart
+
+steps:
+  - use: add-to-cart
+    with: { product: "{{product}}" }
+  - tap: В корзине
+  - tap: Оформить заказ
+  - use: pick-delivery
+    with: { kind: "{{delivery}}" }
+  - if: { visible: Заполните детали доставки }   # условие проверяется один раз, когда дошли сюда
+    then:
+      - tap: Заполните детали доставки
+      - input: { target: Адрес, text: Тверская 1 }
+      - tap: Сохранить
+    else:
+      - assertText: Тверская
+  - tap: { target: Промокод, when: { var: promo } }  # шаг только если переменная promo задана
+  - tap: "{{payment}}"
+  - tap: { target: Оплатить, retry: 2, after: 5 }      # повторить до двух раз при неудаче
+  - tap: { target: Продолжить без входа, optional: true, timeout: 5 }
+  - repeat:                                            # ждать, пока не исчезнет спиннер, но не больше 20 раз
+      until: { notVisible: Проверяем оплату }
+      max: 20
+      steps:
+        - wait: 2
+  - assertText: { text: Заказ оформлен, timeout: 15 }
+  - assertText: { id: order_number, timeout: 10 }      # элемент по id
+  - assertText: { text: "№\\d{6}", regex: true }       # по регулярному выражению
+  - assertText: { text: Товар, count: 1 }              # ровно одно совпадение
+  - assertScreen: { baseline: order-done, threshold: 0.02 }   # сравнение со скриншотом-эталоном
+  - api:
+      title: Заказ оплачен
+      url: api/v1/orders
+      poll: 40                                         # опрашивать, пока expect не сойдётся
+      expectPath: items.0.status
+      expectValue: processing|paid                     # любое из значений
+      save: { orderId: items.0.order_id, orderNumber: items.0.number }
+  - api:                                               # от имени другой роли из настроек (accounts)
+      title: Курьер забрал заказ
+      auth: courier
+      method: POST
+      url: "api/v1/courier/orders/{{orderId}}/pickup"
+      headers: { Idempotency-Key: "{{uuid}}" }
+      body: '{"context": {{context}}, "payload": {}}'
+      expectStatus: 202
+      flaky: true                                      # известно нестабильный: две попытки и пометка
+  - use: open-order
+  - use: wait-shipment-state
+    with: { state: shipped }
+  - tap: { target: { android: Назад, ios: Back } }     # селектор по платформе
+
+teardown:                               # выполняется всегда, кроме «Остановить»
+  - if: { visible: Отменить оформление }
+    then: [ { tap: Отменить оформление } ]
+  - api: { title: Очистить корзину, method: POST, url: api/v1/cart/clear, screenshot: false }
