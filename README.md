@@ -1,5 +1,9 @@
 # E2E Console
 
+[![CI](https://github.com/SamuelBerrington/e2e-console/actions/workflows/ci.yml/badge.svg)](https://github.com/SamuelBerrington/e2e-console/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Node 20+](https://img.shields.io/badge/node-20%2B-brightgreen.svg)
+
 [Русская версия](README.ru.md)
 
 A local page for E2E runs of a mobile app on an emulator, a phone or an iOS simulator:
@@ -10,6 +14,12 @@ devices. The console drives the screen with its own adb driver or with Maestro.
 It knows nothing about a specific app: the package, the environment, the account login, the request envelope and the logs
 are settings and plugins. It is convenient to keep your own project as a preset: one YAML with settings, blocks and
 scenarios (see "Presets").
+
+![The scenario list: last run, pass rate and recent runs](docs/screenshots/scenarios.png)
+
+![A failed run: a screenshot per step and what was on the screen when the check failed](docs/screenshots/run.png)
+
+The screenshots show the browser engine on a made-up demo shop; on a phone or an emulator the frames are the app's screens.
 
 ## Getting started
 
@@ -410,6 +420,10 @@ The browser-engine tests are skipped when no Chrome, Edge or Chromium is install
 - Flashlight tends to die on the emulator in app variants that stub the network.
 - The performance history treats every emulator image as one device.
 - The run queue lives in memory and is lost on restart.
+
+## Contributing and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
 
 ## License
 
