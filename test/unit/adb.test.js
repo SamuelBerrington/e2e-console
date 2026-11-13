@@ -94,12 +94,13 @@ test('parseTouchPanel picks the first device with both MT axes, by label or bare
 test('pinchEvents: protocol B — two slots down, frames of movement with SYN, lift with tracking -1', () => {
   const panel = { path: '/dev/input/event2', minX: 0, maxX: 32767, minY: 0, maxY: 32767 };
   const ev = pinchEvents(panel, { w: 1080, h: 2400 }, 'out', 4);
-  const SLOT = 47, TRACK = 57, X = 53, Y = 54, SYN = 0, BTN = 330;
-  // down: slot 0 + id, position; slot 1 + id, position; BTN_TOUCH; SYN
-  assert.deepEqual(ev.slice(0, 4).map((e) => e[1]), [SLOT, TRACK, X, Y]);
-  assert.deepEqual(ev.slice(4, 8).map((e) => e[1]), [SLOT, TRACK, X, Y]);
-  assert.deepEqual(ev[8], [1, BTN, 1]);
-  assert.deepEqual(ev[9], [0, SYN, 0]);
+  const SLOT = 47, MAJOR = 48, TRACK = 57, X = 53, Y = 54, PRESS = 58, SYN = 0, BTN = 330;
+  // down: slot 0 + id + pressure (zero pressure would read as hovering), position; same for slot 1; BTN_TOUCH; SYN
+  assert.deepEqual(ev.slice(0, 6).map((e) => e[1]), [SLOT, TRACK, PRESS, MAJOR, X, Y]);
+  assert.deepEqual(ev.slice(6, 12).map((e) => e[1]), [SLOT, TRACK, PRESS, MAJOR, X, Y]);
+  assert.ok(ev[2][2] > 0, 'pressure is positive');
+  assert.deepEqual(ev[12], [1, BTN, 1]);
+  assert.deepEqual(ev[13], [0, SYN, 0]);
   // every movement frame ends with SYN_REPORT; the lift ends the list
   const syns = ev.filter((e) => e[0] === 0).length;
   assert.equal(syns, 1 + 4 + 1); // down + 4 frames + lift
@@ -112,15 +113,35 @@ test('pinchEvents: protocol B — two slots down, frames of movement with SYN, l
   for (const e of ev) if (e[1] === X || e[1] === Y) assert.ok(e[2] >= 0 && e[2] <= 32767, String(e[2]));
 });
 
-test('pinch sends one shell call of sendevent commands for the panel', async () => {
+test('pinch probes sendevent access once, then sends one shell call for the whole gesture', async () => {
   const dev = new Device({ adbPath: 'adb', serial: 'fake-serial' });
   const sent = [];
   dev._touchPanel = { path: '/dev/input/event2', minX: 0, maxX: 32767, minY: 0, maxY: 32767 };
   dev._size = { w: 1080, h: 2400 };
   dev.shell = async (cmd) => { sent.push(cmd); return ''; };
   await dev.pinch('in', { durationMs: 300 });
-  assert.equal(sent.length, 1);
-  assert.ok(sent[0].startsWith('sendevent /dev/input/event2 3 47 0;'), sent[0].slice(0, 60));
-  assert.ok(sent[0].endsWith('sendevent /dev/input/event2 0 0 0'));
-  assert.ok(sent[0].includes(' 3 57 -1;'), 'lifts the fingers');
+  assert.equal(sent.length, 2); // the access probe, then the gesture
+  assert.equal(sent[0], 'sendevent /dev/input/event2 0 0 0');
+  assert.ok(sent[1].startsWith('sendevent /dev/input/event2 3 47 0;'), sent[1].slice(0, 60));
+  assert.ok(sent[1].endsWith('sendevent /dev/input/event2 0 0 0'));
+  assert.ok(sent[1].includes(' 3 57 -1;'), 'lifts the fingers');
+  await dev.pinch('out');
+  assert.equal(sent.length, 3, 'the probe is cached');
+});
+
+test('pinch falls back to su when SELinux denies shell the panel, and refuses without su', async () => {
+  const dev = new Device({ adbPath: 'adb', serial: 'fake-serial' });
+  const sent = [];
+  dev._touchPanel = { path: '/dev/input/event2', minX: 0, maxX: 32767, minY: 0, maxY: 32767 };
+  dev._size = { w: 1080, h: 2400 };
+  dev.shell = async (cmd) => { sent.push(cmd); if (!cmd.startsWith('su 0 ')) throw new Error('sendevent: /dev/input/event2: Permission denied'); return ''; };
+  await dev.pinch('out');
+  assert.equal(sent.length, 3); // direct probe, su probe, gesture
+  assert.ok(sent[2].startsWith("su 0 sh -c 'sendevent /dev/input/event2 3 47 0;"), sent[2].slice(0, 70));
+  assert.ok(sent[2].endsWith("'"));
+  const noSu = new Device({ adbPath: 'adb', serial: 'fake-serial' });
+  noSu._touchPanel = dev._touchPanel;
+  noSu._size = dev._size;
+  noSu.shell = async () => { throw new Error('sendevent: /dev/input/event2: Permission denied'); };
+  await assert.rejects(() => noSu.pinch('out'), /adb root/);
 });
