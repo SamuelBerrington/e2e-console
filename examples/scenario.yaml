@@ -25,6 +25,7 @@ steps:
       body: '{"context": {{context}}, "payload": {}}'   # {{context}} — шаблон из настроек (templates)
   - tap: { target: В корзине, after: 3 }
   - swipe: { direction: left, target: Тестовый товар }   # выполнит adb: свайп строки
+  - pinch: out                   # два пальца по центру: out разводит (сетка → колонка), in сводит
   - tap: Удалить из корзины
   - scrollUntilVisible:          # команда Maestro как есть
       element: "Рекомендации"

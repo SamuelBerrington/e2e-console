@@ -80,6 +80,7 @@ rules: { noServerErrors: true }            # any 5xx for the app fails the run
 | Substitutions | variables from settings and the scenario, `save` from API steps, `{{uuid}}`, `{{now}}`, `{{hex64}}`, templates from settings (`{{context}}`) |
 | Measurement | `measure: true` or `measure: { iterations: 3, flashlight: false }`: frames, CPU and memory on every screen step, a score per run; see "Performance" |
 | Scrolling | `swipe: { direction, fast: true, times: 10, pause, duration }`. `fast` is a sharp fling (80 ms across almost the whole screen), `times` is a series in a row: a load test for a list |
+| Pinch | `pinch: { direction: out\|in, times, pause, duration }` — two fingers around the screen centre: `out` spreads them (zoom in, e.g. a feed switching grid → column), `in` brings them together. Android gets real multi-touch over adb (sendevent), the browser a Chromium gesture; Maestro and iOS cannot do it |
 | Section | `section: Feed` is where the scenario lands in the performance history; without it, "Other" |
 | Variants | `variants: { lite: { title, vars, setup, teardown } }`: one run per variant; the variant's `setup` goes before the scenario, `teardown` after it, `vars` are available as `{{…}}`; the history counts variants separately |
 | Tabs | the main page has two tabs: scenarios with `measure` or the `perf` tag go to the "Load" tab, scenarios without `measure` or with the `tests` tag go to the "Tests" tab (one scenario can be in both); a run from "Load" always measures, "Measure all" queues the whole tab |

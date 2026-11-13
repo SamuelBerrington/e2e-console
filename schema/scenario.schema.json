@@ -16,14 +16,20 @@
     "engine": {
       "enum": [
         "adb",
-        "maestro"
-      ]
+        "maestro",
+        "web"
+      ],
+      "description": "adb / maestro drive the phone, web drives a browser page (Playwright)"
     },
     "tags": {
       "type": "array",
       "items": {
         "type": "string"
       }
+    },
+    "tab": {
+      "type": "string",
+      "description": "the tab on the scenario list this scenario belongs to (name or id)"
     },
     "vars": {
       "type": "object"
@@ -87,6 +93,58 @@
       },
       "additionalProperties": false
     },
+    "measure": {
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "iterations": {
+              "type": "number"
+            },
+            "flashlight": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      ],
+      "description": "performance measurement: frames, CPU, memory on every step; iterations — how many runs to queue"
+    },
+    "section": {
+      "type": "string",
+      "description": "section in the performance history (Feed, Catalog, Purchase…)"
+    },
+    "variants": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "vars": {
+            "type": "object"
+          },
+          "setup": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/step"
+            }
+          },
+          "teardown": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/step"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "variants of one scenario for app modes: one run per variant, its setup before the scenario, teardown after"
+    },
     "setup": {
       "type": "array",
       "items": {
@@ -114,7 +172,7 @@
       "oneOf": [
         {
           "type": "string",
-          "description": "шаг без полей: launch, back"
+          "description": "a step without fields: launch, back"
         },
         {
           "type": "object",
@@ -122,10 +180,13 @@
             "type": {
               "enum": [
                 "launch",
+                "browser",
+                "phone",
                 "link",
                 "tap",
                 "type",
                 "swipe",
+                "pinch",
                 "back",
                 "wait",
                 "assertText",
@@ -137,7 +198,7 @@
                 "if",
                 "repeat"
               ],
-              "description": "тип шага (в краткой форме — ключ: `- tap: Каталог`)"
+              "description": "step type (the short form is the key: `- tap: Catalog`)"
             },
             "title": {
               "type": "string"
@@ -151,21 +212,29 @@
             "when": {
               "$ref": "#/definitions/condition"
             },
+            "on": {
+              "enum": [
+                "web",
+                "browser",
+                "phone"
+              ],
+              "description": "where it runs: web (the browser) or phone; default — the scenario engine"
+            },
             "retry": {
               "type": "number",
-              "description": "повторить шаг при неудаче столько раз"
+              "description": "retry the step this many times on failure"
             },
             "optional": {
               "type": "boolean",
-              "description": "неудача не роняет прогон"
+              "description": "a failure does not fail the run"
             },
             "flaky": {
               "type": "boolean",
-              "description": "известно нестабильный: две попытки, отмечается в отчёте"
+              "description": "known flaky: two attempts, marked in the report"
             },
             "timeout": {
               "type": "number",
-              "description": "секунд ждать"
+              "description": "seconds to wait"
             },
             "allowStatus": {
               "type": "array"
@@ -177,23 +246,19 @@
               "type": "number"
             },
             "url": {
-              "oneOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "android": {
-                      "type": "string"
-                    },
-                    "ios": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              ]
+              "type": "string",
+              "description": "browser: the page to open (full, or a path under the site address from the settings)"
+            },
+            "storage": {
+              "type": "object",
+              "description": "browser: localStorage entries to put in place before the page loads"
+            },
+            "steps": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/step"
+              },
+              "description": "these steps run in the browser"
             },
             "target": {
               "oneOf": [
@@ -248,6 +313,22 @@
                 "left",
                 "right"
               ]
+            },
+            "fast": {
+              "type": "boolean",
+              "description": "a fling: 80 ms over most of the screen"
+            },
+            "times": {
+              "type": "number",
+              "description": "how many swipes in a row"
+            },
+            "pause": {
+              "type": "number",
+              "description": "seconds between swipes (0.25 with fast, else 1)"
+            },
+            "duration": {
+              "type": "number",
+              "description": "gesture duration, ms"
             },
             "seconds": {
               "type": "number"
@@ -335,17 +416,8 @@
                 "$ref": "#/definitions/step"
               }
             },
-            "steps": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/step"
-              }
-            },
             "until": {
               "$ref": "#/definitions/condition"
-            },
-            "times": {
-              "type": "number"
             },
             "max": {
               "type": "number"
@@ -363,7 +435,7 @@
     },
     "condition": {
       "type": "object",
-      "description": "условие: visible / notVisible (текст на экране), var + equals|matches, platform, not",
+      "description": "condition: visible / notVisible (text on screen), var + equals|matches, platform, not; on — which screen to look at",
       "properties": {
         "visible": {
           "oneOf": [
@@ -418,6 +490,18 @@
         },
         "not": {
           "$ref": "#/definitions/condition"
+        },
+        "on": {
+          "enum": [
+            "web",
+            "browser",
+            "phone"
+          ],
+          "description": "where it runs: web (the browser) or phone; default — the scenario engine"
+        },
+        "timeout": {
+          "type": "number",
+          "description": "seconds to look for visible / notVisible (3)"
         }
       },
       "additionalProperties": false
@@ -426,10 +510,13 @@
       "type": "object",
       "properties": {
         "launch": {},
+        "browser": {},
+        "phone": {},
         "link": {},
         "tap": {},
         "input": {},
         "swipe": {},
+        "pinch": {},
         "back": {},
         "wait": {},
         "assertText": {},

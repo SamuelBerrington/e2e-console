@@ -14,6 +14,7 @@ const STEP_TYPES = [
   ['tap', 'Нажать'],
   ['type', 'Ввести текст'],
   ['swipe', 'Пролистать'],
+  ['pinch', 'Пинч (две точки)'],
   ['back', 'Назад'],
   ['wait', 'Подождать'],
   ['assertText', 'Проверить экран'],
@@ -743,6 +744,9 @@ function stepFields(s, i) {
     case 'link': return f('url', t('Ссылка, напр. https://example.com/p/{{product}} или myapp://screen'), 'wide');
     case 'swipe': return sel('direction', t('Куда'), [['down', t('Вниз (листать дальше)')], ['up', t('Вверх')], ['left', t('Смахнуть строку влево')], ['right', t('Смахнуть строку вправо')]])
       + f('target', t('Строка (текст на ней) — для влево/вправо'));
+    case 'pinch': return sel('direction', t('Жест'), [['out', t('Развести пальцы (крупнее)')], ['in', t('Свести пальцы (мельче)')]])
+      + num('times', t('Раз подряд'), '1')
+      + `<span class="hint" style="padding-top:9px">${t('Два пальца по центру экрана: смена масштаба или раскладки (сетка ⇄ колонка). На телефоне — через adb, в браузере — жест Chromium.')}</span>`;
     case 'back': return `<span class="hint" style="padding-top:9px">${t('Системная кнопка «Назад»')}</span>`;
     case 'wait': return num('seconds', t('Секунд'), '1');
     case 'assertText': return f('text', t('Текст, который должен быть на экране (или id элемента)'), 'wide') + chk('absent', t('Наоборот: текста быть не должно')) + num('timeout', t('Ждать, с'), '10')
@@ -808,7 +812,7 @@ function renderEditor() {
     </div>
     ${lintBox(d.lint)}
     ${editMode === 'yaml' ? `<section class="card pad col">
-      <div class="hint">${t('Весь сценарий текстом. Шаги: launch, link, tap, input, swipe, back, wait, assertText, api, ai, maestro — коротко (`- tap: Каталог`) или с полями. Команды Maestro можно писать прямо среди шагов (`- tapOn: …`). «Сохранить» применит текст.')} <b>${h(YAML_HEADER_HINT())}</b></div>
+      <div class="hint">${t('Весь сценарий текстом. Шаги: launch, link, tap, input, swipe, pinch, back, wait, assertText, api, ai, maestro — коротко (`- tap: Каталог`) или с полями. Команды Maestro можно писать прямо среди шагов (`- tapOn: …`). «Сохранить» применит текст.')} <b>${h(YAML_HEADER_HINT())}</b></div>
       <textarea class="code tall" id="sc-yaml" spellcheck="false">${h(d.yamlText || '')}</textarea>
     </section>` : `<section class="card">
       ${d.setup || d.teardown || d.blocks || d.matrix || d.rules ? `<div class="hint" style="padding:10px 16px 0">${t('У сценария есть {what} — они редактируются в режиме YAML.', { what: h([d.setup && 'setup (' + d.setup.length + ')', d.teardown && 'teardown (' + d.teardown.length + ')', d.blocks && t('свои блоки: ') + Object.keys(d.blocks).join(', '), d.matrix && 'matrix', d.rules && 'rules'].filter(Boolean).join(', ')) })}</div>` : ''}
@@ -863,7 +867,7 @@ function readHeaderField(el) {
 // Fields each step type edits; on a type change the step keeps the ones the new type also has.
 const STEP_KEYS = {
   launch: ['clear', 'settle', 'url'], link: ['url'], tap: ['target', 'timeout', 'optional', 'by', 'dx', 'dy'], type: ['target', 'text', 'enter'],
-  swipe: ['direction', 'target'], back: [], wait: ['seconds'], assertText: ['text', 'absent', 'timeout', 'by', 'regex', 'count'],
+  swipe: ['direction', 'target'], pinch: ['direction', 'times'], back: [], wait: ['seconds'], assertText: ['text', 'absent', 'timeout', 'by', 'regex', 'count'],
   assertScreen: ['baseline', 'threshold'], api: ['title', 'auth', 'method', 'url', 'body', 'expectPath', 'expectValue', 'poll', 'save'],
   use: ['use', 'with'], if: ['if', 'then', 'else'], repeat: ['until', 'times', 'max', 'steps'], ai: ['text'],
   maestro: ['title', 'yaml', 'commands'], browser: ['steps'], phone: ['steps']
